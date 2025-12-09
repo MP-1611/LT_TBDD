@@ -1,4 +1,5 @@
 # LT_TBDD
+# Link Figma: https://www.figma.com/design/x16VTQh7W0Byr0ApD81k7D/Untitled?node-id=0-1&m=dev&t=XSp96Zr051QZRb0v-1
 Môn LT_Thiết bị di động Năm 3
 Ứng dụng "Tên ứng dụng" giúp người dùng:
 Đặt lịch nhắc uống nước theo thời gian trong ngày (ví dụ: mỗi 1 giờ / giờ cụ thể / theo giỏ thời gian).
