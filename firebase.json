@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"h20reminder","appId":"1:44885317566:android:4e9eb94b9597b40cfd4bef","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"h20reminder","configurations":{"android":"1:44885317566:android:4e9eb94b9597b40cfd4bef","ios":"1:44885317566:ios:b0b9c3c463834f4afd4bef"}}}}}}
