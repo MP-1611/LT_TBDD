@@ -1,3 +1,4 @@
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -23,6 +24,7 @@ android {
     }
 
     defaultConfig {
+
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "uth.edu.h20_reminder"
         // You can update the following values to match your application needs.
