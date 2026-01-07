@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../../routes/app_routes.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -276,16 +278,37 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            _NavItem(icon: Icons.home, active: true),
-            _NavItem(icon: Icons.calendar_month),
-            _NavItem(icon: Icons.checklist),
-            _NavItem(icon: Icons.person),
+          children: [
+            _NavItem(
+              icon: Icons.home,
+              active: true,
+              onTap: () {
+              },
+            ),
+            _NavItem(
+              icon: Icons.calendar_month,
+              onTap: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.missions);
+              },
+            ),
+            _NavItem(
+              icon: Icons.checklist,
+              onTap: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.shop);
+              },
+            ),
+            _NavItem(
+              icon: Icons.person,
+              onTap: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.profile);
+              },
+            ),
           ],
         ),
       ),
     );
   }
+
 
   Widget _glow(Color color, double size) {
     return Container(
@@ -302,22 +325,32 @@ class _HomeScreenState extends State<HomeScreen> {
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final bool active;
+  final VoidCallback onTap;
 
-  const _NavItem({required this.icon, this.active = false});
+  const _NavItem({
+    required this.icon,
+    required this.onTap,
+    this.active = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 56,
-      height: 48,
-      decoration: BoxDecoration(
-        color: active ? const Color(0xFF36E27B) : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Icon(
-        icon,
-        color: active ? Colors.black : Colors.white54,
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        width: 56,
+        height: 48,
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF36E27B) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          icon,
+          color: active ? Colors.black : Colors.white54,
+        ),
       ),
     );
   }
 }
+

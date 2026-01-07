@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import '../../../services/app_startup_service.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,22 +19,19 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    );
-
-    _progress = Tween<double>(begin: 0.0, end: 0.35).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-
-    _controller.forward();
-
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, '/login');
-    });
+    _start();
   }
+
+  Future<void> _start() async {
+    await Future.delayed(const Duration(seconds: 5));
+
+    final route = await AppStartupService.getInitialRoute();
+
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(context, route);
+  }
+
+
 
   @override
   void dispose() {

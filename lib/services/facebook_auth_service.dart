@@ -23,9 +23,8 @@ class FacebookAuthService {
       // 3️⃣ Tạo Firebase credential (API MỚI)
       final OAuthCredential credential =
       FacebookAuthProvider.credential(
-        accessToken.token, // ✅ ĐÚNG
+        accessToken.tokenString, // ✅ API MỚI
       );
-
       // 4️⃣ Login Firebase
       return await _auth.signInWithCredential(credential);
     } catch (e) {

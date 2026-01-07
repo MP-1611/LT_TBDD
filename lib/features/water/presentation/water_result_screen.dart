@@ -136,7 +136,8 @@ class WaterResultScreen extends StatelessWidget {
                     "water": {
                       "dailyGoal": dailyGoal,
                       "current": 0,
-                    }
+                    },
+                    "onboardingDone": true,
                   });
                   if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../data/auth_repository.dart';
 import '../../../services/local_storage_service.dart';
@@ -42,7 +43,7 @@ class AuthController {
   /// -------- GOOGLE LOGIN --------
   Future<void> loginGoogle(BuildContext context) async {
     try {
-      await _repo.signInWithGoogle();
+      await _repo.loginWithGoogle();
       await _syncUserData();
       _goNext(context);
     } catch (e) {
@@ -53,7 +54,7 @@ class AuthController {
   /// -------- FACEBOOK LOGIN --------
   Future<void> loginFacebook(BuildContext context) async {
     try {
-      await _repo.signInWithFacebook();
+      await _repo.loginWithFacebook();
       await _syncUserData();
       _goNext(context);
     } catch (e) {
@@ -101,19 +102,23 @@ class AuthController {
 
   /// -------- NAVIGATION --------
   void _goNext(BuildContext context) {
-    final hasWeight = LocalStorageService.getWeight() > 0;
-    final hasInterests =
-        LocalStorageService.getInterests().isNotEmpty;
+    final user = FirebaseAuth.instance.currentUser!;
+    final isNewUser =
+        user.metadata.creationTime ==
+            user.metadata.lastSignInTime;
 
-    if (!hasWeight) {
+    if (isNewUser) {
+      // 👉 BẮT BUỘC ONBOARDING
       Navigator.pushReplacementNamed(
-          context, AppRoutes.personalInfo);
-    } else if (!hasInterests) {
-      Navigator.pushReplacementNamed(
-          context, AppRoutes.interests);
+        context,
+        AppRoutes.personalInfo,
+      );
     } else {
+      // 👉 USER CŨ → VÀO THẲNG HOME
       Navigator.pushReplacementNamed(
-          context, AppRoutes.home);
+        context,
+        AppRoutes.home,
+      );
     }
   }
 

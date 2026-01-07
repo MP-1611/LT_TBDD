@@ -63,6 +63,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '44885317566',
     projectId: 'h20reminder',
     storageBucket: 'h20reminder.firebasestorage.app',
+    androidClientId: '44885317566-ousam33m5k2v0n2v98lbsn6501dhrgbv.apps.googleusercontent.com',
+    iosClientId: '44885317566-o12m5carlmspub11tfi00gf4k84sbqfj.apps.googleusercontent.com',
     iosBundleId: 'uth.edu.h20Reminder',
   );
+
 }

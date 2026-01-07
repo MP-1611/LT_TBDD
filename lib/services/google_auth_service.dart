@@ -3,37 +3,47 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class GoogleAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
-  /// Đăng nhập bằng Google
-  Future<UserCredential> signInWithGoogle() async {
-    try {
-      // 1️⃣ Chọn tài khoản Google
-      final GoogleSignInAccount? googleUser =
-      await _googleSignIn.signIn();
+  bool _initialized = false;
 
-      if (googleUser == null) {
-        throw Exception("Google sign in aborted");
-      }
+  Future<void> _ensureInitialized() async {
+    if (_initialized) return;
 
-      // 2️⃣ Lấy auth details
-      final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
+    await _googleSignIn.initialize(
+      // KHÔNG cần clientId trên Android
+      // clientId chỉ dùng cho Web / iOS nếu cần
+    );
 
-      // 3️⃣ Tạo credential cho Firebase
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // 4️⃣ Đăng nhập Firebase
-      return await _auth.signInWithCredential(credential);
-    } catch (e) {
-      rethrow;
-    }
+    _initialized = true;
   }
 
-  /// Đăng xuất Google
+  Future<UserCredential> signInWithGoogle() async {
+    await _ensureInitialized();
+
+    // 🔥 API MỚI: authenticate()
+    final GoogleSignInAccount googleUser =
+    await _googleSignIn.authenticate();
+
+    // 🔥 CHỈ CÓ idToken
+    final String? idToken =
+        googleUser.authentication.idToken;
+
+    if (idToken == null) {
+      throw FirebaseAuthException(
+        code: 'GOOGLE_NO_ID_TOKEN',
+        message: 'Google did not return an ID token',
+      );
+    }
+
+    final OAuthCredential credential =
+    GoogleAuthProvider.credential(
+      idToken: idToken,
+    );
+
+    return await _auth.signInWithCredential(credential);
+  }
+
   Future<void> signOut() async {
     await _googleSignIn.signOut();
     await _auth.signOut();
