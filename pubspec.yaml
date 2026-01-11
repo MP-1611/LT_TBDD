@@ -41,6 +41,8 @@ dependencies:
   font_awesome_flutter: ^10.6.0
   shared_preferences: ^2.3.2
   cloud_firestore: ^6.1.1
+  firebase_messaging: ^16.1.0
+  flutter_local_notifications: ^17.0.0
 
 
 dev_dependencies:

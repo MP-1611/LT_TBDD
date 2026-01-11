@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/onboarding/presentation/personal_info_screen.dart';
 import '../features/onboarding/presentation/interest_screen.dart';
-import '../features/water/presentation/water_result_screen.dart';
+import '../features/onboarding/presentation/water_result_screen.dart';
 import '../features/water/presentation/home_screen.dart';
 import '../features/mission/presentation/weekly_mission_screen.dart';
 import '../features/shop/presentation/shop_screen.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/interest_model.dart';
-import 'package:h20_reminder/features/water/presentation/water_result_screen.dart';
+import 'package:h20_reminder/features/onboarding/presentation/water_result_screen.dart';
 import 'package:h20_reminder/services/local_storage_service.dart';
 import 'package:h20_reminder/routes/app_routes.dart';
 

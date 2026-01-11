@@ -142,7 +142,7 @@ class WaterResultScreen extends StatelessWidget {
                   if (!context.mounted) return;
                   Navigator.pushNamedAndRemoveUntil(
                     context,
-                    AppRoutes.navigation,
+                    AppRoutes.home,
                         (route) => false,
                   );
                 },
