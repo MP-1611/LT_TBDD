@@ -319,7 +319,7 @@ class _WaterHistoryScreenState extends State<WaterHistoryScreen> {
     return _historyItem(
       icon: Icons.water_drop,
       title: log.type,
-      time: DateFormat('hh:mm a').format(log.time),
+      time: DateFormat('hh:mm a').format(log.createdAt),
       amount: "${log.amount} ml",
       color: Colors.blue,
     );

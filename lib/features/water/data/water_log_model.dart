@@ -2,32 +2,28 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class WaterLog {
   final String id;
-  final int amount; // ml
-  final DateTime time;
-  final String type; // water, tea, coffee
+  final int amount;
+  final String type;
+  final DateTime createdAt;
 
   WaterLog({
     required this.id,
     required this.amount,
-    required this.time,
     required this.type,
+    required this.createdAt,
   });
 
   factory WaterLog.fromDoc(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
+
     return WaterLog(
       id: doc.id,
-      amount: data['amount'],
-      type: data['type'],
-      time: (data['time'] as Timestamp).toDate(),
-    );
-  }
+      amount: data['amount'] ?? 0,
+      type: data['type'] ?? 'water',
 
-  Map<String, dynamic> toMap() {
-    return {
-      'amount': amount,
-      'type': type,
-      'time': Timestamp.fromDate(time),
-    };
+      // ✅ FIX LỖI "Null is not a subtype of Timestamp"
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate()
+          ?? DateTime.fromMillisecondsSinceEpoch(0),
+    );
   }
 }
