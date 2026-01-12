@@ -2,6 +2,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import '../routes/app_routes.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'navigation_service.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("📩 Background message: ${message.notification?.title}");
@@ -25,7 +26,6 @@ class NotificationService {
       badge: true,
       sound: true,
     );
-
     const androidInit =
     AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
@@ -77,13 +77,67 @@ class NotificationService {
       ),
     );
   }
+  static Future<void> repeatEveryMinutes({
+    required int id,
+    required int minutes,
+    required String title,
+    required String body,
+  }) async {
+    await _local.periodicallyShow(
+      id,
+      title,
+      body,
+      RepeatInterval.everyMinute, // nền tảng Android
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'drink_water',
+          'Drink Water',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidAllowWhileIdle: true,
+    );
+  }
 
-  static void _handleOpen(RemoteMessage message) {
+  /// ⏰ NHẮC LẶP THEO GIỜ CỤ THỂ (KHUYÊN DÙNG)
+  static Future<void> scheduleHourly({
+    required int id,
+    required int intervalHours,
+    required String title,
+    required String body,
+  }) async {
+    final now = tz.TZDateTime.now(tz.local);
+
+    await _local.zonedSchedule(
+      id,
+      title,
+      body,
+      now.add(Duration(hours: intervalHours)),
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'drink_water',
+          'Drink Water',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidAllowWhileIdle: true,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time, // 🔁 lặp mỗi ngày
+    );
+  }
+
+  static _handleOpen(RemoteMessage message) {
     final data = message.data;
 
     if (data['screen'] == 'mission') {
       NavigationService.navigatorKey.currentState
           ?.pushNamed(AppRoutes.missions);
     }
+  }
+  static Future<void> cancelAll() async {
+    await _local.cancelAll();
   }
 }

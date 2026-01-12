@@ -1,8 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import '../../notification/data/notification_repository.dart';
 import '../../../routes/app_routes.dart';
+import '../../reminder/presentation/water_schedule_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,18 +15,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentWater = 1250;
   int dailyGoal = 2000;
-  bool hasUnreadNotification = true;
-
+  final _notificationRepo = NotificationRepository();
 
   double get progress => min(currentWater / dailyGoal, 1);
 
-  void addWater(int amount) {
+  void addWater(int amount) async {
     setState(() {
       currentWater += amount;
       if (currentWater > dailyGoal) {
         currentWater = dailyGoal;
       }
     });
+    await _notificationRepo.addNotification(
+      title: 'Uống nước 💧',
+      body: 'Bạn vừa uống thêm $amount ml nước',
+    );
   }
 
   String get motivationText {
@@ -42,13 +46,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF112117),
+      drawer: _buildDrawer(context),
       body: Stack(
         children: [
           _backgroundGlow(),
           SafeArea(
             child: Column(
               children: [
-                _header(),
+                _header(context),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 140),
@@ -91,52 +96,76 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _header() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {},
-          ),
-          const Text(
-            "Nhắc nhở uống nước",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Stack(
+  Widget _header(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              /// ☰ MENU
               IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white),
+                icon: const Icon(Icons.menu, color: Colors.white),
                 onPressed: () {
-                  setState(() {
-                    hasUnreadNotification = false;
-                  });
+                  Scaffold.of(context).openDrawer();
                 },
               ),
-              if (hasUnreadNotification)
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
+
+              /// TITLE
+              const Text(
+                "Nhắc nhở uống nước",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+
+              /// 🔔 NOTIFICATION
+              StreamBuilder<int>(
+                stream: _notificationRepo.unreadCount(),
+                builder: (context, snapshot) {
+                  final count = snapshot.data ?? 0;
+
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.notifications,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.notifications,
+                          );
+                        },
+                      ),
+                      if (count > 0)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+
 
   Widget _motivation() {
     return Container(
@@ -267,6 +296,43 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: const Color(0xFF0F1F16),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                "Menu",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const Divider(color: Colors.white24),
+
+            ListTile(
+              leading: const Icon(Icons.alarm, color: Color(0xFF36E27B)),
+              title: const Text(
+                "Đặt lịch uống nước",
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context); // đóng drawer
+                Navigator.pushNamed(context, AppRoutes.waterSchedule);
+              },
+            ),
+          ],
         ),
       ),
     );

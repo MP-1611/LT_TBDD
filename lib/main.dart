@@ -6,9 +6,11 @@ import 'package:h20_reminder/services/notification_service.dart';
 import 'firebase_options.dart';
 import 'services/local_storage_service.dart';
 import 'routes/route_generator.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  tz.initializeTimeZones();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

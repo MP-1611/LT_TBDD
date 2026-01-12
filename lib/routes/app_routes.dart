@@ -11,4 +11,6 @@ class AppRoutes {
   static const shop = '/shop_screen';
   static const profile = '/profile_screen';
   static const navigation = '/main_navigation';
+  static const notifications = '/notifications';
+  static const waterSchedule = '/water_schedule_screen';
 }
