@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../notification/data/notification_repository.dart';
 import '../../../routes/app_routes.dart';
 import '../../reminder/presentation/water_schedule_screen.dart';
+import '../data/water_log_repository.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int currentWater = 1250;
   int dailyGoal = 2000;
   final _notificationRepo = NotificationRepository();
+  final _waterRepo = WaterLogRepository();
 
   double get progress => min(currentWater / dailyGoal, 1);
 
@@ -26,6 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
         currentWater = dailyGoal;
       }
     });
+    await _waterRepo.addLog(
+      amount: amount,
+      type: 'water',
+    );
     await _notificationRepo.addNotification(
       title: 'Uống nước 💧',
       body: 'Bạn vừa uống thêm $amount ml nước',
@@ -330,6 +336,17 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.pop(context); // đóng drawer
                 Navigator.pushNamed(context, AppRoutes.waterSchedule);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.bar_chart, color: Color(0xFF36E27B)),
+              title: const Text(
+                "Lịch sử uống nước",
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, AppRoutes.waterHistory);
               },
             ),
           ],

@@ -3,6 +3,7 @@ import '../routes/app_routes.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'navigation_service.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("📩 Background message: ${message.notification?.title}");
@@ -21,6 +22,8 @@ class NotificationService {
   );
 
   static Future<void> init() async {
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Ho_Chi_Minh'));
     await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -128,6 +131,7 @@ class NotificationService {
       matchDateTimeComponents: DateTimeComponents.time, // 🔁 lặp mỗi ngày
     );
   }
+  static FlutterLocalNotificationsPlugin get local => _local;
 
   static _handleOpen(RemoteMessage message) {
     final data = message.data;

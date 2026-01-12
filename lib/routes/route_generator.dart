@@ -10,6 +10,7 @@ import '../features/water/presentation/home_screen.dart';
 import '../features/mission/presentation/weekly_mission_screen.dart';
 import '../features/shop/presentation/shop_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
+import '../features/water/presentation/water_history_screen.dart';
 import 'app_routes.dart';
 
 class RouteGenerator {
@@ -37,6 +38,8 @@ class RouteGenerator {
         return _page(const NotificationScreen());
       case AppRoutes.waterSchedule:
         return _page(const WaterScheduleScreen());
+      case AppRoutes.waterHistory:
+        return _page(const WaterHistoryScreen());
 
       case AppRoutes.home:
         return _page(const HomeScreen());

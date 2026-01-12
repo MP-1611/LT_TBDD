@@ -13,4 +13,6 @@ class AppRoutes {
   static const navigation = '/main_navigation';
   static const notifications = '/notifications';
   static const waterSchedule = '/water_schedule_screen';
+  static const waterHistory = '/water_history';
+
 }

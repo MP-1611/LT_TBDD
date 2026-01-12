@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../services/notification_service.dart';
+import '../data/water_reminder_service.dart';
 
 class WaterScheduleScreen extends StatefulWidget {
   const WaterScheduleScreen({super.key});
@@ -319,7 +320,18 @@ class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
           ),
         ),
         onPressed: () async {
-          // TODO: gọi NotificationService.schedule(...)
+          await WaterReminderService.cancelAll();
+
+          await WaterReminderService.scheduleReminders(
+            startHour: wakeUp.hour,
+            endHour: bedTime.hour,
+            intervalMinutes: frequencyMinutes,
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đã lưu lịch uống nước 💧')),
+          );
+
           Navigator.pop(context);
         },
         child: const Text(
