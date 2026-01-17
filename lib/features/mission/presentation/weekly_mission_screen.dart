@@ -48,7 +48,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
   void _showExpTemporarily() {
     setState(() => showExpBar = true);
 
-    Future.delayed(const Duration(seconds: 4), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (!mounted) return;
       setState(() => showExpBar = false);
     });
@@ -152,6 +152,15 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                   children: [
                     _weeklyCard(),
                     const SizedBox(height: 24),
+                    if (showExpBar)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: ExpBar(
+                          level: level,
+                          currentXp: xp,
+                          xpToNext: xpToNext,
+                        ),
+                      ),
                     const Text(
                       "⚡ Active Quests",
                       style: TextStyle(
@@ -165,6 +174,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                     ...missions
                         .where((m) => m.status == MissionStatus.locked)
                         .map(_missionCard),
+
                   ],
                 ),
               ),
@@ -360,15 +370,6 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                 ),
               ],
             ),
-            if (showExpBar)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24),
-                child: ExpBar(
-                  level: level,
-                  currentXp: xp,
-                  xpToNext: xpToNext,
-                ),
-              ),
             const SizedBox(height: 12),
             if (m.status == MissionStatus.active)
               LinearProgressIndicator(
@@ -402,7 +403,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text("Nhận ${m.reward} ${m.rewardType}! 🎉"),
-                        duration: const Duration(seconds: 1),
+                        duration: const Duration(seconds: 2),
                       ),
                     );
                   },
