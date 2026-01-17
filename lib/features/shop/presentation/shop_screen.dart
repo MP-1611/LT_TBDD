@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../routes/app_routes.dart';
 import '../models/shop_item.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -104,7 +105,10 @@ class _ShopScreenState extends State<ShopScreen> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          const BackButton(color: Colors.white),
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.home), // ⬅️ BACK HOME
+          ),
           const Expanded(
             child: Center(
               child: Text(

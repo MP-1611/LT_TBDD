@@ -18,5 +18,17 @@ class FirebaseUserRepository {
     final doc = await _db.collection("users").doc(uid).get();
     return doc.data();
   }
+  Future<void> incrementStats({int xp = 0, int drops = 0}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final ref = _db.collection('users').doc(user.uid);
+
+    await ref.update({
+      'xp': FieldValue.increment(xp),
+      'drops': FieldValue.increment(drops),
+    });
+  }
+
 }
 

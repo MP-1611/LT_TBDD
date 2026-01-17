@@ -127,15 +127,15 @@ class WaterResultScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () async {
-                  // 1️⃣ Lưu local
-                  await LocalStorageService.setDailyGoal(dailyGoal);
-                  await LocalStorageService.setCurrentWater(0);
+                  final goal = dailyGoal;
 
-                  // 2️⃣ Lưu firebase
+                  // LOCAL (để load nhanh)
+                  await LocalStorageService.setDailyGoal(goal);
+
+                  // Lưu firebase
                   await firebaseRepo.saveUserData({
                     "water": {
                       "dailyGoal": dailyGoal,
-                      "current": 0,
                     },
                     "onboardingDone": true,
                   });

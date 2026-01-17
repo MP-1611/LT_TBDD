@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:h20_reminder/features/mission/presentation/widgets/exp_overlay.dart';
+import '../../../routes/app_routes.dart';
+import '../../profile/data/player_progress_service.dart';
+import '../../profile/presentation/exp_bar.dart';
+import '../data/weekly_mission_service.dart';
 import '../models/mission_model.dart';
 
 class WeeklyMissionScreen extends StatefulWidget {
@@ -9,10 +14,72 @@ class WeeklyMissionScreen extends StatefulWidget {
 }
 
 class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
-  int weeklyCurrent = 12500;
-  int weeklyGoal = 14000;
+  final _service = WeeklyMissionService();
 
-  final List<Mission> missions = [
+  int weeklyGoal = 14000;
+  int weeklyCurrent = 0;
+  int reachedDays = 0;
+//EXP
+  int level = 1;
+  int xp = 0;
+  int xpToNext = 100;
+  bool showExpBar = false;
+  final _progressService = PlayerProgressService();
+
+  Future<void> _load() async {
+    final now = DateTime.now();
+    weeklyCurrent = await _service.getWeeklyTotal(now);
+    reachedDays = await _service.getReachedDays(now);
+
+    final p = await _progressService.getProgress();
+    level = p['level']!;
+    xp = p['xp']!;
+    xpToNext = p['xpToNext']!;
+
+    setState(() => loading = false);
+  }
+
+  bool loading = true;
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+  void _showExpTemporarily() {
+    setState(() => showExpBar = true);
+
+    Future.delayed(const Duration(seconds: 4), () {
+      if (!mounted) return;
+      setState(() => showExpBar = false);
+    });
+  }
+  void showExpOverlay({
+    required int level,
+    required int xp,
+    required int xpToNext,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      builder: (_) => Stack(
+        children: [
+          ExpOverlay(
+            level: level,
+            currentXp: xp,
+            xpToNext: xpToNext,
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+  double get weeklyProgress =>
+      (weeklyCurrent / weeklyGoal).clamp(0, 1);
+
+  List<Mission> get  missions => [
     Mission(
       id: "drink_5_days",
       title: "Drink 5 days/week",
@@ -20,19 +87,23 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
       icon: Icons.calendar_month,
       reward: 100,
       rewardType: "XP",
-      progress: 0.6,
-      status: MissionStatus.active,
+      progress: reachedDays / 5,
+      status: reachedDays >= 5
+          ? MissionStatus.completed
+          : MissionStatus.active,
       color: Colors.blueAccent,
     ),
     Mission(
       id: "daily_goal",
-      title: "Reach daily goal",
+      title: "Reach weekly goal",
       description: "Reward: +50 Drops",
       icon: Icons.local_drink,
       reward: 50,
       rewardType: "Drops",
-      progress: 0.9,
-      status: MissionStatus.active,
+      progress: weeklyProgress,
+      status: weeklyProgress >= 1
+          ? MissionStatus.completed
+          : MissionStatus.active,
       color: Colors.purpleAccent,
     ),
     Mission(
@@ -59,30 +130,36 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
     ),
   ];
 
-  double get weeklyProgress => weeklyCurrent / weeklyGoal;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF112117),
       body: SafeArea(
-        child: Column(
+        child: loading
+            ? const Center(
+          child: CircularProgressIndicator(color: Color(0xFF36E27B)),
+        )
+            : Column(
           children: [
-            _appBar(),
+            _appBar(context),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+                padding:
+                const EdgeInsets.fromLTRB(20, 16, 20, 120),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _headline(),
-                    const SizedBox(height: 24),
                     _weeklyCard(),
-                    const SizedBox(height: 28),
-                    _sectionTitle("⚡ Active Quests"),
-                    ...missions
-                        .where((m) => m.status != MissionStatus.locked)
-                        .map(_missionCard),
+                    const SizedBox(height: 24),
+                    const Text(
+                      "⚡ Active Quests",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    ...missions.map(_missionCard),
                     const SizedBox(height: 24),
                     _sectionTitle("🔒 Locked Quests"),
                     ...missions
@@ -100,12 +177,13 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
 
   // ---------------- UI ----------------
 
-  Widget _appBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      child: Row(
-        children: const [
-          BackButton(color: Colors.white),
+  Widget _appBar(BuildContext context) {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.home), // ⬅️ BACK HOME
+        ),
           Expanded(
             child: Center(
               child: Text(
@@ -118,13 +196,12 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
           Padding(
             padding: EdgeInsets.only(right: 8),
             child: Chip(
-              label: Text("W12"),
+              label: Text("W1"),
               backgroundColor: Color(0xFF36E27B),
               labelStyle: TextStyle(color: Colors.black),
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
@@ -206,6 +283,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                   style: const TextStyle(color: Colors.white)),
             ],
           ),
+
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: weeklyProgress,
@@ -282,6 +360,15 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                 ),
               ],
             ),
+            if (showExpBar)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: ExpBar(
+                  level: level,
+                  currentXp: xp,
+                  xpToNext: xpToNext,
+                ),
+              ),
             const SizedBox(height: 12),
             if (m.status == MissionStatus.active)
               LinearProgressIndicator(
@@ -299,8 +386,25 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16)),
                   ),
-                  onPressed: () {
-                    // TODO: cộng XP / Drops
+                  onPressed: () async {
+                    if (m.rewardType == "XP") {
+                      _showExpTemporarily(); // 👈 quan trọng
+
+                      final result = await _progressService.addXp(m.reward);
+
+                      setState(() {
+                        level = result['level']!;
+                        xp = result['xp']!;
+                        xpToNext = result['xpToNext']!;
+                      });
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Nhận ${m.reward} ${m.rewardType}! 🎉"),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
                   },
                   child: Text(
                     "Claim Reward +${m.reward} ${m.rewardType}",

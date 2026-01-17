@@ -95,4 +95,22 @@ class WaterLogRepository {
           snapshot.docs.map((doc) => WaterLog.fromDoc(doc)).toList(),
     );
   }
+  Stream<int> watchTodayTotal() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const Stream.empty();
+
+    final todayKey = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    return _userLogs(user.uid)
+        .where('dayKey', isEqualTo: todayKey)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.fold<int>(
+        0,
+            (sum, doc) => sum + (doc['amount'] as int),
+      ),
+    );
+  }
+
 }
+

@@ -56,4 +56,19 @@ class LocalStorageService {
       _prefs.setInt("drops", drops);
 
   static int getDrops() => _prefs.getInt("drops") ?? 0;
+
+  // ---------- Reset ----------
+  static const _lastResetKey = 'last_reset_date';
+
+  static Future<void> setLastResetDate(String date) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastResetKey, date);
+  }
+
+  static Future<String?> getLastResetDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_lastResetKey);
+  }
+
 }
+
