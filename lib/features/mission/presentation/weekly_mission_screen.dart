@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:h20_reminder/features/mission/presentation/widgets/exp_overlay.dart';
 import '../../../routes/app_routes.dart';
+import '../../../services/firebase_user_repository.dart';
+import '../../../services/local_storage_service.dart';
 import '../../profile/data/player_progress_service.dart';
 import '../../profile/presentation/exp_bar.dart';
 import '../data/weekly_mission_service.dart';
 import '../models/mission_model.dart';
+
 
 class WeeklyMissionScreen extends StatefulWidget {
   const WeeklyMissionScreen({super.key});
@@ -15,8 +18,9 @@ class WeeklyMissionScreen extends StatefulWidget {
 
 class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
   final _service = WeeklyMissionService();
-
-  int weeklyGoal = 14000;
+  final _userRepo = FirebaseUserRepository();
+  int dailyGoal=200;
+  int weeklyGoal = 0;
   int weeklyCurrent = 0;
   int reachedDays = 0;
 //EXP
@@ -28,6 +32,14 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
 
   Future<void> _load() async {
     final now = DateTime.now();
+    final int? localDaily = await LocalStorageService.getDailyGoal();
+    if (localDaily != null) {
+      dailyGoal = localDaily;
+    } else {
+      final user = await _userRepo.fetchUserData();
+      dailyGoal = user?['water']?['dailyGoal'] ?? 2000;
+    }
+    weeklyGoal = dailyGoal * 7;
     weeklyCurrent = await _service.getWeeklyTotal(now);
     reachedDays = await _service.getReachedDays(now);
 
