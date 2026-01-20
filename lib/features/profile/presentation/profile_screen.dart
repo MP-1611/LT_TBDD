@@ -1,8 +1,76 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
-class ProfileScreen extends StatelessWidget {
+import '../../../routes/app_routes.dart';
+import '../../../services/firebase_user_repository.dart';
+import '../../../services/local_storage_service.dart';
+import '../data/player_progress_service.dart';
+import 'edit_profile_screen.dart';
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _userRepo = FirebaseUserRepository();
+  final _progressService = PlayerProgressService();
+
+  String name = "";
+  int weight = 0;
+  String wakeUp = "";
+  int dailyGoal = 0;
+  String? avatarUrl;
+
+  int streak = 0;
+  int totalIntake = 0;
+
+  int level = 1;
+  int xp = 0;
+  int xpToNext = 100;
+
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final data = await _userRepo.fetchUserData();
+
+    if (data == null) {
+      setState(() => loading = false);
+      return;
+    }
+
+    final profile = data['profile'] ?? {};
+    final water = data['water'] ?? {};
+    final stats = data['stats'] ?? {};
+    final progress = await _progressService.getProgress();
+
+    setState(() {
+      name = profile['name'] ?? "User";
+      weight = profile['weight'] ?? 0;
+      wakeUp = profile['wakeUp'] ?? "--:--";
+      dailyGoal = water['dailyGoal'] ?? 0;
+      avatarUrl = profile['avatar'];
+
+
+      streak = stats['streak'] ?? 0;
+      totalIntake = stats['totalIntake'] ?? 0;
+
+      // 🔥 QUAN TRỌNG: level là INT, KHÔNG phải map
+      level = progress['level']!;
+      xp = progress['xp']!;
+      xpToNext = progress['xpToNext']!;
+      loading = false;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +112,10 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
         children: [
-          const BackButton(color: Colors.white),
+          IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.home), // ⬅️ BACK HOME
+          ),
           const Expanded(
             child: Center(
               child: Text(
@@ -56,7 +127,15 @@ class ProfileScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.edit, color: Color(0xFF36E27B)),
-            onPressed: () {},
+              onPressed: () async {
+                final changed = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                );
+                if (changed == true) {
+                  _loadProfile(); // reload data
+                }
+              },
           ),
         ],
       ),
@@ -84,9 +163,11 @@ class ProfileScreen extends StatelessWidget {
                   )
                 ],
               ),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 56,
-                backgroundImage: AssetImage("assets/images/avatar.png"),
+                backgroundImage: avatarUrl != null
+                    ? NetworkImage(avatarUrl!)
+                    : const AssetImage("assets/images/avatar.png") as ImageProvider,
               ),
             ),
             CircleAvatar(
@@ -98,16 +179,16 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        const Text(
-          "Alex Student",
+        Text(
+          name,
           style: TextStyle(
             color: Colors.white,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
-        const Text(
-          "Hydration Hero • Lvl 12",
+         Text(
+          "Hydration Hero • Lvl $level",
           style: TextStyle(color: Color(0xFF9EB7A8)),
         ),
       ],
@@ -116,14 +197,14 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _quickStats() {
     return Row(
-      children: const [
-        _StatPill(icon: Icons.monitor_weight, value: "65", unit: "kg"),
+      children: [
+        _StatPill(icon: Icons.monitor_weight, value: "$weight", unit: "kg"),
         SizedBox(width: 12),
-        _StatPill(icon: Icons.wb_sunny, value: "7:00", unit: "AM"),
+        _StatPill(icon: Icons.wb_sunny, value: wakeUp, unit: ""),
         SizedBox(width: 12),
         _StatPill(
           icon: Icons.local_drink,
-          value: "2500",
+          value: "$dailyGoal",
           unit: "ml",
           highlight: true,
         ),
@@ -132,27 +213,32 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _hydrationStats() {
+    final int safeDailyGoal = dailyGoal <= 0 ? 1 : dailyGoal;
+
+    final double percent =
+    (totalIntake / safeDailyGoal).clamp(0, 1);
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: const [
+        children: [
           _InfoCard(
             icon: Icons.local_fire_department,
             title: "Streak",
-            value: "5 Days",
+            value: "$streak Days",
             color: Colors.orange,
           ),
           _InfoCard(
             icon: Icons.water_drop,
             title: "Total Intake",
-            value: "1.8L",
-            color: Color(0xFF36E27B),
+            value: "${(totalIntake / 1000).toStringAsFixed(1)}L",
+            color: const Color(0xFF36E27B),
             filled: true,
           ),
           _InfoCard(
             icon: Icons.donut_large,
             title: "Goal",
-            value: "72%",
+            value: "${(percent * 100).toInt()}%",
             color: Colors.blue,
           ),
         ],
@@ -172,7 +258,7 @@ class ProfileScreen extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
                 "CURRENT LEVEL",
                 style: TextStyle(
@@ -182,16 +268,16 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                "1250 / 2000 XP",
+                "$xp / $xpToNext XP",
                 style: TextStyle(color: Color(0xFF9EB7A8)),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Row(
-            children: const [
+            children:  [
               Text(
-                "Level 12",
+                "$level",
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -209,7 +295,7 @@ class ProfileScreen extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: 0.62,
+              value: xpToNext <= 0 ? 0 : xp / xpToNext,
               minHeight: 10,
               backgroundColor: Colors.black26,
               valueColor:
@@ -217,12 +303,6 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          const Center(
-            child: Text(
-              "Drink 750ml more to reach Level 13!",
-              style: TextStyle(color: Color(0xFF9EB7A8), fontSize: 12),
-            ),
-          ),
         ],
       ),
     );
@@ -347,7 +427,15 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _logout() {
     return TextButton(
-      onPressed: () {},
+      onPressed: () async {
+        await FirebaseAuth.instance.signOut();
+        await LocalStorageService.clearAll();
+        Navigator.pushNamedAndRemoveUntil(
+            context,
+            AppRoutes.login,
+                (_) => false,
+            );
+      },
       child: const Text(
         "Log Out",
         style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),

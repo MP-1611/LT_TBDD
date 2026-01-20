@@ -69,6 +69,26 @@ class LocalStorageService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_lastResetKey);
   }
+  static Future<void> clearAll() async {
+    // USER
+    await _prefs.remove("weight");
+    await _prefs.remove("gender");
+    await _prefs.remove("wake_up");
 
+    // WATER
+    await _prefs.remove("daily_goal");
+    await _prefs.remove("current_water");
+
+    // INTEREST
+    await _prefs.remove("interests");
+
+    // LEVEL / PROGRESS
+    await _prefs.remove("level");
+    await _prefs.remove("xp");
+    await _prefs.remove("drops");
+
+    // RESET TRACKING
+    await _prefs.remove(_lastResetKey);
+  }
 }
 
