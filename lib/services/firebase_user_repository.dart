@@ -29,6 +29,11 @@ class FirebaseUserRepository {
       'drops': FieldValue.increment(drops),
     });
   }
+  Future<void> updateUserData(Map<String, dynamic> data) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
+    await _db.collection("users").doc(user.uid).update(data);
+  }
 }
 

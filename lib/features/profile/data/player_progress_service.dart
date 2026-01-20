@@ -3,6 +3,7 @@ import 'package:h20_reminder/services/firebase_user_repository.dart';
 class PlayerProgressService {
   final _userRepo = FirebaseUserRepository();
 
+
   int _xpForLevel(int level) {
     // Level càng cao càng khó
     return 100 + (level - 1) * 50;

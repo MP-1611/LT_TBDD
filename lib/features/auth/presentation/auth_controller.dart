@@ -70,6 +70,8 @@ class AuthController {
     final profile = data['profile'];
     final water = data['water'];
     final level = data['level'];
+    final xp = data['xp'];
+    final drops = data['drops'];
 
     if (profile != null) {
       await LocalStorageService.setWeight(
@@ -88,9 +90,10 @@ class AuthController {
     }
 
     if (level != null) {
-      await LocalStorageService.setLevel(level['level'] ?? 1);
-      await LocalStorageService.setXP(level['xp'] ?? 0);
-      await LocalStorageService.setDrops(level['drops'] ?? 0);
+      await LocalStorageService.setLevel(level ?? 1);
+      await LocalStorageService.setXP(xp ?? 0);
+      await LocalStorageService.setDrops(drops ?? 0);
+
     }
 
     if (data['interests'] != null) {

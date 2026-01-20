@@ -19,6 +19,7 @@ class WeeklyMissionScreen extends StatefulWidget {
 class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
   final _service = WeeklyMissionService();
   final _userRepo = FirebaseUserRepository();
+
   int dailyGoal=200;
   int weeklyGoal = 0;
   int weeklyCurrent = 0;
@@ -28,10 +29,15 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
   int xp = 0;
   int xpToNext = 100;
   bool showExpBar = false;
+  bool loading = true;
+  final Map<String, bool> claimed = {};
   final _progressService = PlayerProgressService();
+
 
   Future<void> _load() async {
     final now = DateTime.now();
+    //reset neu sang tuan moi
+    await _service.resetIfNewWeek();
     final int? localDaily = await LocalStorageService.getDailyGoal();
     if (localDaily != null) {
       dailyGoal = localDaily;
@@ -43,15 +49,20 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
     weeklyCurrent = await _service.getWeeklyTotal(now);
     reachedDays = await _service.getReachedDays(now);
 
+
     final p = await _progressService.getProgress();
     level = p['level']!;
     xp = p['xp']!;
     xpToNext = p['xpToNext']!;
 
+    /// check claimed missions
+    for (final m in missions) {
+      claimed[m.id] =
+      await _service.isMissionClaimed(m.id);
+    }
     setState(() => loading = false);
   }
 
-  bool loading = true;
   @override
   void initState() {
     super.initState();
@@ -106,7 +117,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
       color: Colors.blueAccent,
     ),
     Mission(
-      id: "daily_goal",
+      id: "weekly_goal",
       title: "Reach weekly goal",
       description: "Reward: +50 Drops",
       icon: Icons.local_drink,
@@ -125,7 +136,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
       icon: Icons.emoji_events,
       reward: 200,
       rewardType: "XP",
-      progress: 1.0,
+      progress: 1,
       status: MissionStatus.completed,
       color: const Color(0xFF36E27B),
     ),
@@ -134,10 +145,11 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
       title: "Workout Hydration",
       description: "Unlock at Level 5",
       icon: Icons.fitness_center,
-      reward: 0,
-      rewardType: "",
+      reward: 350,
+      rewardType: "XP",
       progress: 0,
-      status: MissionStatus.locked,
+      status:
+      level >= 5 ? MissionStatus.active : MissionStatus.locked,
       color: Colors.grey,
     ),
   ];
@@ -209,7 +221,7 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
           Expanded(
             child: Center(
               child: Text(
-                "Nhiệm vụ tuần",
+                "Nhiệm vụ ngày",
                 style:
                 TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
@@ -223,38 +235,6 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
               labelStyle: TextStyle(color: Colors.black),
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _headline() {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
-                "Keep it flowing!",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                "You're doing great, maintain your hydration streak.",
-                style: TextStyle(color: Color(0xFF9EB7A8)),
-              ),
-            ],
-          ),
-        ),
-        const CircleAvatar(
-          radius: 40,
-          backgroundColor: Color(0xFF36E27B),
-          child: Icon(Icons.water_drop, size: 40, color: Colors.black),
-        ),
       ],
     );
   }
@@ -335,11 +315,12 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
   }
 
   Widget _missionCard(Mission m) {
-    final locked = m.status == MissionStatus.locked;
+    final isClaimed = claimed[m.id] == true;
+    final isLocked = m.status == MissionStatus.locked;
     final completed = m.status == MissionStatus.completed;
 
     return Opacity(
-      opacity: locked ? 0.5 : 1,
+      opacity: isClaimed ? 0.4 : isLocked ? 0.5 : 1,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -390,40 +371,40 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
                 valueColor:
                 AlwaysStoppedAnimation(m.color),
               ),
-            if (completed)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF36E27B),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16)),
-                  ),
-                  onPressed: () async {
-                    if (m.rewardType == "XP") {
-                      _showExpTemporarily(); // 👈 quan trọng
+            if (!isClaimed &&
+                !isLocked &&
+                m.status == MissionStatus.completed)
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                  const Color(0xFF36E27B),
+                ),
+                onPressed: () async {
+                  await _service.claimMission(
+                    missionId: m.id,
+                    xp: m.rewardType == "XP" ? m.reward : 0,
+                    drops:
+                    m.rewardType == "Drops" ? m.reward : 0,
+                  );
 
-                      final result = await _progressService.addXp(m.reward);
+                  if (m.rewardType == "XP") {
+                    _showExpTemporarily();
+                    final r =
+                    await _progressService.addXp(m.reward);
+                    setState(() {
+                      level = r['level']!;
+                      xp = r['xp']!;
+                      xpToNext = r['xpToNext']!;
+                    });
+                  }
 
-                      setState(() {
-                        level = result['level']!;
-                        xp = result['xp']!;
-                        xpToNext = result['xpToNext']!;
-                      });
-                    }
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text("Nhận ${m.reward} ${m.rewardType}! 🎉"),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    "Claim Reward +${m.reward} ${m.rewardType}",
-                    style: const TextStyle(
-                        color: Colors.black, fontWeight: FontWeight.bold),
-                  ),
+                  setState(() => claimed[m.id] = true);
+                },
+                child: Text(
+                  "Claim +${m.reward} ${m.rewardType}",
+                  style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
           ],
