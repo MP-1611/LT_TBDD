@@ -51,6 +51,9 @@ class AuthRepository {
     final result = await _auth.signInWithCredential(credential);
     return result.user;
   }
+  Future<void> sendResetEmail(String email) async {
+    await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+  }
 
   Future<void> logout() async {
     await Future.wait([

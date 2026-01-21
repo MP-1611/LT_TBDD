@@ -14,5 +14,6 @@ class AppRoutes {
   static const notifications = '/notifications';
   static const waterSchedule = '/water_schedule_screen';
   static const waterHistory = '/water_history';
-
+  static const forgotpassword='/forgot_password_screen';
+  static const otpscreen='/otp_verification_screen';
 }

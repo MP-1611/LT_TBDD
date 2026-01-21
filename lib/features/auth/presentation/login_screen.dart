@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:h20_reminder/features/auth/presentation/auth_controller.dart';
 
+import '../../../routes/app_routes.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -142,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: () => Navigator.pushNamed(context, AppRoutes.forgotpassword),
                               child: const Text(
                                 "Forgot Password?",
                                 style: TextStyle(color: Colors.white54),
