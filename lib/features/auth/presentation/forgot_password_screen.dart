@@ -1,8 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import '../../../routes/app_routes.dart';
-
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
@@ -190,7 +188,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => Navigator.pushNamed(context, AppRoutes.otpscreen),
+        onPressed: loading ? null : _sendResetLink,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF36E27B),
           padding: const EdgeInsets.symmetric(vertical: 16),

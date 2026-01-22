@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:h20_reminder/features/auth/presentation/forgot_password_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/auth/presentation/otp_verification_screen.dart';
+import '../features/auth/presentation/reset_password_screen.dart';
 import '../features/notification/presentation/notification_screen.dart';
 import '../features/onboarding/presentation/personal_info_screen.dart';
 import '../features/onboarding/presentation/interest_screen.dart';
@@ -19,11 +19,10 @@ class RouteGenerator {
     switch (settings.name) {
       case AppRoutes.login:
         return _page(const LoginScreen());
-      case AppRoutes.forgotpassword:
+      case AppRoutes.forgotPassword:
         return _page(const ForgotPasswordScreen());
-      case AppRoutes.otpscreen:
-        final email = settings.arguments as String;
-        return _page(OtpVerificationScreen(email: email));
+      case AppRoutes.resetPassword:
+        return _page(const ResetPasswordScreen());
 
       case AppRoutes.personalInfo:
         return _page(const PersonalInfoScreen());
