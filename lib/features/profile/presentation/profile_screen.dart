@@ -330,10 +330,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           color: Colors.blue,
         ),
         _settingItem(
-          icon: Icons.notifications,
-          title: "Notifications",
-          subtitle: "Reminders, Sound, Vibrate",
-          color: Colors.purple,
+          icon: Icons.lock_reset,
+          title: "Reset Password",
+          subtitle: "Change your account password",
+          color: Colors.orange,
+          onTap: () {
+            Navigator.pushNamed(context, AppRoutes.resetPassword);
+          },
         ),
         _unitsSetting(),
         _settingItem(
@@ -353,6 +356,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String subtitle,
     required Color color,
     bool divider = true,
+    VoidCallback? onTap,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -374,7 +378,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text(subtitle, style: const TextStyle(color: Color(0xFF9EB7A8))),
             trailing:
             const Icon(Icons.chevron_right, color: Colors.white38),
-            onTap: () {},
+            onTap: onTap,
           ),
           if (divider)
             const Divider(height: 1, color: Colors.white10),

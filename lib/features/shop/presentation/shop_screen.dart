@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../routes/app_routes.dart';
+import '../../../services/firebase_user_repository.dart';
+import '../../profile/data/player_progress_service.dart';
 import '../models/shop_item.dart';
 
 class ShopScreen extends StatefulWidget {
@@ -12,6 +14,60 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> {
   int userDrops = 1250;
   int userLevel = 12;
+  final _userRepo = FirebaseUserRepository();
+  final _progressService = PlayerProgressService();
+
+  String name = "";
+  int weight = 0;
+  String wakeUp = "";
+  int dailyGoal = 0;
+  String? avatarUrl;
+
+  int streak = 0;
+  int totalIntake = 0;
+
+  int level = 1;
+  int xp = 0;
+  int xpToNext = 100;
+
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadshop();
+  }
+  Future<void> _loadshop() async {
+    final data = await _userRepo.fetchUserData();
+
+    if (data == null) {
+      setState(() => loading = false);
+      return;
+    }
+
+    final profile = data['profile'] ?? {};
+    final water = data['water'] ?? {};
+    final stats = data['stats'] ?? {};
+    final progress = await _progressService.getProgress();
+
+    setState(() {
+      name = profile['name'] ?? "User";
+      weight = profile['weight'] ?? 0;
+      wakeUp = profile['wakeUp'] ?? "--:--";
+      dailyGoal = water['dailyGoal'] ?? 0;
+      avatarUrl = profile['avatar'];
+
+
+      streak = stats['streak'] ?? 0;
+      totalIntake = stats['totalIntake'] ?? 0;
+
+      // 🔥 QUAN TRỌNG: level là INT, KHÔNG phải map
+      level = progress['level']!;
+      xp = progress['xp']!;
+      xpToNext = progress['xpToNext']!;
+      loading = false;
+    });
+  }
 
   ItemType selectedFilter = ItemType.hat;
 
@@ -163,15 +219,15 @@ class _ShopScreenState extends State<ShopScreen> {
                 ),
               ),
               Image.asset(
-                "assets/images/mascot_home.png",
+                "assets/images/mascot.png",
                 width: 120,
               ),
             ],
           ),
         ),
-        const Text(
-          "Level 12 • Hydration Hero",
-          style: TextStyle(color: Colors.white54),
+        Text(
+          "$level • Hydration Hero",
+          style: const TextStyle(color: Colors.white54),
         ),
       ],
     );

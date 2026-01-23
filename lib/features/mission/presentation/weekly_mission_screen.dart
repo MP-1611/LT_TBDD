@@ -33,9 +33,13 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
   final Map<String, bool> claimed = {};
   final _progressService = PlayerProgressService();
 
+  late bool reachedBeforeNoon;
+
 
   Future<void> _load() async {
     final now = DateTime.now();
+    //reset neu sang ngay moi
+    await _service.resetIfNewDay();
     //reset neu sang tuan moi
     await _service.resetIfNewWeek();
     final int? localDaily = await LocalStorageService.getDailyGoal();
@@ -48,7 +52,16 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
     weeklyGoal = dailyGoal * 7;
     weeklyCurrent = await _service.getWeeklyTotal(now);
     reachedDays = await _service.getReachedDays(now);
+    reachedBeforeNoon =
+      await _service.reachedBeforeNoon(
+        date: now,
+        dailyGoal: dailyGoal,
+      );
 
+    claimed['drink_before_noon'] =
+    await _service.isMissionClaimed('drink_before_noon');
+    claimed['drink_today'] =
+    await _service.isMissionClaimed('drink_today');
 
     final p = await _progressService.getProgress();
     level = p['level']!;
@@ -128,6 +141,45 @@ class _WeeklyMissionScreenState extends State<WeeklyMissionScreen> {
           ? MissionStatus.completed
           : MissionStatus.active,
       color: Colors.purpleAccent,
+    ),
+    Mission(
+      id: "drink_today",
+      title: "Drink enough today",
+      description: "Reward: +300 XP",
+      icon: Icons.water_drop,
+      reward: 300,
+      rewardType: "XP",
+      progress: (weeklyCurrent / dailyGoal).clamp(0, 1),
+      status: weeklyCurrent >= dailyGoal
+          ? MissionStatus.completed
+          : MissionStatus.active,
+      color: Colors.lightBlueAccent,
+    ),
+    Mission(
+      id: "drink_before_noon",
+      title: "Drink before noon",
+      description: "Reward: +30 XP",
+      icon: Icons.wb_sunny,
+      reward: 1000,
+      rewardType: "XP",
+      progress: reachedBeforeNoon ? 1 : 0,
+      status: reachedBeforeNoon
+          ? MissionStatus.completed
+          : MissionStatus.active,
+      color: Colors.orangeAccent,
+    ),
+    Mission(
+      id: "drink_to_strong",
+      title: "Drink_to_strong",
+      description: "Reward: +400 XP",
+      icon: Icons.trending_up,
+      reward: 400,
+      rewardType: "XP",
+      progress: (weeklyCurrent / dailyGoal).clamp(0, 1),
+      status: weeklyCurrent >= dailyGoal
+          ? MissionStatus.completed
+          : MissionStatus.active,
+      color: Colors.lightBlueAccent,
     ),
     Mission(
       id: "streak",

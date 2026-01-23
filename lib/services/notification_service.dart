@@ -103,6 +103,7 @@ class NotificationService {
     );
   }
 
+
   /// ⏰ NHẮC LẶP THEO GIỜ CỤ THỂ (KHUYÊN DÙNG)
   static Future<void> scheduleHourly({
     required int id,
@@ -143,5 +144,42 @@ class NotificationService {
   }
   static Future<void> cancelAll() async {
     await _local.cancelAll();
+  }
+  static const AndroidNotificationDetails _androidDetails =
+  AndroidNotificationDetails(
+    'water_reminder',
+    'Water Reminder',
+    channelDescription: 'Nhắc uống nước',
+    importance: Importance.max,
+    priority: Priority.high,
+    enableVibration: true,
+  );
+
+  static const NotificationDetails _details =
+  NotificationDetails(android: _androidDetails);
+  static Future<void> show({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await _local.show(id, title, body, _details);
+  }
+  static Future<void> schedule({
+    required int id,
+    required DateTime dateTime,
+    required String title,
+    required String body,
+  }) async {
+    await _local.zonedSchedule(
+      id,
+      title,
+      body,
+      tz.TZDateTime.from(dateTime, tz.local),
+      _details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: null,
+    );
   }
 }

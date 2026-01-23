@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../services/firebase_user_repository.dart';
 import '../../../services/notification_service.dart';
 import '../data/water_reminder_service.dart';
 
@@ -12,11 +13,25 @@ class WaterScheduleScreen extends StatefulWidget {
 
 class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
   bool enableReminder = true;
-
+  int selectedIndex = 0;
   TimeOfDay wakeUp = const TimeOfDay(hour: 7, minute: 0);
   TimeOfDay bedTime = const TimeOfDay(hour: 22, minute: 0);
+  int dailyGoal = 2000;
+
 
   int frequencyMinutes = 60; // 30, 60, custom
+  @override
+  void initState() {
+    super.initState();
+    _loadGoal();
+  }
+
+  Future<void> _loadGoal() async {
+    final data = await FirebaseUserRepository().fetchUserData();
+    setState(() {
+      dailyGoal = data?['water']?['dailyGoal'] ?? 2000;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,15 +133,15 @@ class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text(
+            children: [
+              const Text(
                 "Hydration Goal",
                 style: TextStyle(color: Colors.white54),
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               Text(
-                "2,000 ml",
-                style: TextStyle(
+                "$dailyGoal ml",
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -249,7 +264,7 @@ class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
   }
 
   Widget _upcomingSchedule() {
-    final times = _generateTimes();
+    final times = _generateTimesDate();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -266,16 +281,21 @@ class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
             itemCount: times.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (_, i) {
+              final t = times[i];
+              final text =
+                  '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
               return Container(
                 width: 80,
                 decoration: BoxDecoration(
-                  color: i == 0 ? const Color(0xFF36E27B) : const Color(
-                      0xFF1C2E24),
+                  color: i == 0
+                      ? const Color(0xFF36E27B)
+                      : const Color(0xFF1C2E24),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Center(
                   child: Text(
-                    times[i],
+                    text,
                     style: TextStyle(
                       color: i == 0 ? Colors.black : Colors.white,
                       fontWeight: FontWeight.bold,
@@ -290,23 +310,44 @@ class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
     );
   }
 
-  List<String> _generateTimes() {
+
+  List<DateTime> _generateTimesDate() {
     if (frequencyMinutes <= 0) return [];
 
-    final result = <String>[];
-    var current = wakeUp.hour * 60 + wakeUp.minute;
-    final end = bedTime.hour * 60 + bedTime.minute;
+    final now = DateTime.now();
 
-    while (current <= end) {
-      final h = current ~/ 60;
-      final m = current % 60;
-      result.add(
-        '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}',
-      );
-      current += frequencyMinutes;
+    final start = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      wakeUp.hour,
+      wakeUp.minute,
+    );
+
+    var end = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      bedTime.hour,
+      bedTime.minute,
+    );
+
+    // ⏰ Nếu ngủ qua ngày mới (vd 22:00 → 06:00)
+    if (end.isBefore(start)) {
+      end = end.add(const Duration(days: 1));
     }
+
+    final result = <DateTime>[];
+    var current = start;
+
+    while (current.isBefore(end) || current.isAtSameMomentAs(end)) {
+      result.add(current);
+      current = current.add(Duration(minutes: frequencyMinutes));
+    }
+
     return result;
   }
+
 
   Widget _saveButton() {
     return Padding(
@@ -314,31 +355,64 @@ class _WaterScheduleScreenState extends State<WaterScheduleScreen> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF36E27B),
-          padding: const EdgeInsets.all(18),
+          padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(32),
           ),
         ),
         onPressed: () async {
-          await WaterReminderService.cancelAll();
+          try {
+            // 1️⃣ Lưu config (local / firestore nếu có)
+            await WaterReminderService.saveSettings(
+              enabled: enableReminder,
+              wakeUp: wakeUp,
+              bedTime: bedTime,
+              intervalMinutes: frequencyMinutes,
+            );
 
-          await WaterReminderService.scheduleReminders(
-            startHour: wakeUp.hour,
-            endHour: bedTime.hour,
-            intervalMinutes: frequencyMinutes,
-          );
+            // 2️⃣ Huỷ toàn bộ notification cũ
+            await WaterReminderService.cancelAll();
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Đã lưu lịch uống nước 💧')),
-          );
+            // 3️⃣ Tạo notification mới nếu bật reminder
+            if (enableReminder) {
+              await WaterReminderService.scheduleDaily(
+                wakeUp: wakeUp,
+                bedTime: bedTime,
+                intervalMinutes: frequencyMinutes,
+              );
+            }
 
-          Navigator.pop(context);
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Đã lưu lịch uống nước 💧'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+
+            Navigator.pop(context, true); // báo màn trước reload
+          } catch (e) {
+            debugPrint('SAVE SCHEDULE ERROR: $e');
+
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Có lỗi xảy ra khi lưu lịch ❌'),
+              ),
+            );
+          }
         },
         child: const Text(
           'Save Schedule ✓',
-          style: TextStyle(color: Colors.black, fontSize: 16),
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
+
 }

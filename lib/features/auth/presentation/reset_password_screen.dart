@@ -162,6 +162,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               ),
             ),
+            _backToLogin(),
           ],
         ),
       ),
@@ -186,6 +187,21 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(24),
           borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _backToLogin() {
+    return TextButton.icon(
+      onPressed: () => Navigator.pop(context),
+      icon: const Icon(Icons.keyboard_backspace,
+          color: Colors.white38, size: 18),
+      label: const Text(
+        "Back to profile",
+        style: TextStyle(
+          color: Colors.white38,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

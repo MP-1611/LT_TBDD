@@ -58,26 +58,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   // SAVE PROFILE
   // =====================
   Future<void> _save() async {
-    String? avatarUrl = _avatarUrl;
-
-    if (_avatarFile != null) {
-      avatarUrl = await _service.uploadAvatar(_avatarFile!);
-    }
-    if (saving) return;
+    if (saving) return; // ✅ chặn ngay từ đầu
     setState(() => saving = true);
 
-    await _service.saveProfile(
-      name: _nameCtrl.text.trim(),
-      weight: double.tryParse(_weightCtrl.text) ?? 60,
-      wakeUp:
-      '${_wakeUp.hour.toString().padLeft(2, '0')}:${_wakeUp.minute.toString().padLeft(2, '0')}',
-      dailyGoal: int.tryParse(_goalCtrl.text) ?? 2000,
-      avatarUrl: avatarUrl,
-    );
+    try {
+      String? avatarUrl = _avatarUrl;
 
-    if (!mounted) return;
-    Navigator.pop(context, true); // 👈 báo ProfileScreen reload
+      if (_avatarFile != null) {
+        avatarUrl = await _service.uploadAvatar(_avatarFile!);
+      }
+
+      await _service.saveProfile(
+        name: _nameCtrl.text.trim(),
+        weight: double.tryParse(_weightCtrl.text) ?? 60,
+        wakeUp:
+        '${_wakeUp.hour.toString().padLeft(2, '0')}:${_wakeUp.minute.toString().padLeft(2, '0')}',
+        dailyGoal: int.tryParse(_goalCtrl.text) ?? 2000,
+        avatarUrl: avatarUrl,
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, true); // ✅ QUAY VỀ + RELOAD PROFILE
+    } catch (e) {
+      debugPrint('Save profile error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to save profile')),
+      );
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
   }
+
   Future<void> _pickAvatar() async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
@@ -276,15 +288,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ],
     );
   }
-
   Widget _saveButton() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        icon: const Icon(Icons.check_circle, color: Colors.black),
-        label: const Text(
-          "Save Changes",
-          style: TextStyle(
+        icon: saving
+            ? const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.black,
+          ),
+        )
+            : const Icon(Icons.check_circle, color: Colors.black),
+        label: Text(
+          saving ? "Saving..." : "Save Changes",
+          style: const TextStyle(
               color: Colors.black,
               fontSize: 18,
               fontWeight: FontWeight.bold),
@@ -295,8 +315,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         ),
-        onPressed: _save,
+        onPressed: saving ? null : _save, // 🔥
       ),
     );
   }
+
 }

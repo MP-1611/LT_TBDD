@@ -180,7 +180,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Column(
       children: [
-        Image.asset("assets/images/mascot_home.png", width: 120),
+        Image.asset("assets/images/mascot.png", width: 120),
         const SizedBox(height: 16),
         SizedBox(
           width: 260,

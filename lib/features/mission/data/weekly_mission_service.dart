@@ -125,4 +125,47 @@ class WeeklyMissionService {
       await _userRepo.updateUserData(updates);
     }
   }
+  String _dayKey(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+  Future<void> resetIfNewDay() async {
+    final user = await _userRepo.fetchUserData();
+    if (user == null) return;
+
+    final todayKey = _dayKey(DateTime.now());
+    final storedDay = user['missions']?['lastDay'];
+
+    if (storedDay == todayKey) return; // chưa sang ngày mới
+
+    final updates = <String, dynamic>{
+      'missions.lastDay': todayKey,
+    };
+
+    // ❗ Reset daily-related data nếu có
+    if (user['missions']?['daily'] != null) {
+      user['missions']['daily'].forEach((key, _) {
+        updates['missions.daily.$key'] = null;
+      });
+    }
+
+    await _userRepo.updateUserData(updates);
+  }
+  Future<bool> reachedBeforeNoon({
+    required DateTime date,
+    required int dailyGoal,
+  }) async {
+    final logs = await _waterRepo.getByDay(date).first;
+
+    int total = 0;
+
+    for (final l in logs) {
+      final DateTime logTime = l.createdAt;
+      if (logTime.hour < 12) {
+        total += l.amount;
+      }
+    }
+
+    return total >= dailyGoal;
+  }
+
 }
