@@ -1,53 +1,52 @@
 <<<<<<< HEAD
 # h20_reminder
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
 # LT_TBDD
 # Link Figma: https://www.figma.com/design/x16VTQh7W0Byr0ApD81k7D/Untitled?node-id=0-1&m=dev&t=XSp96Zr051QZRb0v-1
 Môn LT_Thiết bị di động Năm 3
-Ứng dụng H2O Reminder-nhắc nhở uống nước giúp người dùng:
-Đặt lịch nhắc uống nước theo thời gian trong ngày (ví dụ: mỗi 1 giờ / giờ cụ thể / theo giỏ thời gian).
 
-Theo dõi lượng nước đã uống trong ngày, tuần, tháng.
+Ứng dụng **nhắc nhở uống nước (H2O Reminder)** được phát triển bằng **Flutter**, hỗ trợ người dùng:
+- Tính toán lượng nước khuyến nghị theo **cân nặng** và **mức độ hoạt động**
+- Thiết lập **lịch nhắc uống nước** trong ngày
+- Gửi **thông báo nhắc nhở** để duy trì thói quen uống nước
+- Tích hợp **nhiệm vụ (missions)** và **game hóa (gamification)** với **EXP**, **nhân vật**, và **Shop** để tăng động lực sử dụng
 
-Đưa ra mục tiêu cá nhân (ml/ngày) và gợi ý nhắc dựa trên trọng lượng, hoạt động.
+---
 
-Báo cáo/biểu đồ tiến độ; lịch sử; nhắc thông minh (skip khi đang ngủ, chế độ không làm phiền).
+## Features
 
-Lưu offline, đồng bộ (tuỳ chọn) và có cài đặt tuỳ biến (âm, rung, notification action “Uống ngay” + “Nhắc sau”).
+### 1) Nhắc nhở uống nước (Reminder System)
+- Tạo lịch nhắc uống nước theo thời gian trong ngày (ví dụ: mỗi 1 giờ hoặc khung giờ cụ thể)
+- Tùy chỉnh tần suất nhắc nhở
+- Gửi thông báo nhắc người dùng uống nước đúng giờ
 
-Mục tiêu và yêu cầu:
-Áp dụng kiến thức Android hiện đại (Kotlin, MVVM, Room, WorkManager, LiveData/StateFlow, Material Design).
+### 2) Theo dõi lượng nước (Water Tracking)
+- Ghi nhận lượng nước đã uống trong ngày
+- Theo dõi tiến trình uống nước theo ngày
+- Hướng tới hỗ trợ thống kê theo tuần/tháng (tùy theo phiên bản)
 
-Triển khai notification, background tasks, persistence, accessibility, unit/UI tests.
+### 3) Tính toán mục tiêu nước theo cá nhân
+Ứng dụng gợi ý mục tiêu uống nước (ml/ngày) dựa trên:
+- Cân nặng người dùng
+- Mức độ hoạt động (ít / vừa / nhiều)
 
-Yêu cầu chức năng (FR):
-Đăng ký 1 tài khoản cơ bản (tuỳ chọn) hoặc dùng offline.
+### 4) Nhiệm vụ (Missions) & Game hóa (Gamification)
+- Hệ thống nhiệm vụ giúp người dùng có động lực vào app thường xuyên
+- Nhận thưởng / tăng EXP khi hoàn thành nhiệm vụ hoặc đạt mục tiêu uống nước
+- Có **thanh kinh nghiệm (EXP bar)** để thể hiện tiến trình
 
-Thiết lập mục tiêu nước (ml/ngày).
+### 5) Shop & Tùy biến nhân vật
+- Shop giúp người dùng mua trang phục cho nhân vật
+- Tạo cảm giác “sưu tầm” và tăng trải nghiệm game hóa
 
-Tạo lịch nhắc (các mẫu: khoảng cố định, giờ cụ thể, theo profile).
+### 6) Đăng nhập và đăng kí cho người dùng
+- Đăng nhập bằng email
+- Đăng nhập bằng gmail hoặc facebook
+  
+### 7) Lưu trữ dữ liệu (Firebase + Local)
+- Lưu dữ liệu trên **Firebase** để đồng bộ (nếu có đăng nhập/đồng bộ)
+- Lưu dữ liệu **local** để dùng offline và tăng tốc độ tải dữ liệu
 
-Tương tác notification có action “Đã uống” và “Nhắc sau`.
-
-Lưu ghi nhận uống nước; hiển thị biểu đồ, thống kê.
-
-Cài đặt: âm, rung, giới hạn giờ nhắc (ban đêm), nhắc thông minh.
-
+---
 Yêu cầu phi chức năng (NFR):
 Hoạt động hiệu quả, tiết kiệm pin.
 
@@ -57,27 +56,35 @@ Hỗ trợ offline.
 
 Hỗ trợ đa ngôn ngữ (VN & EN) và accessibility.
 
-Kiến trúc & tech stack:
-Ngôn ngữ: Kotlin
+## Tech Stack
 
-Kiến trúc: MVVM (ViewModel + LiveData / StateFlow).
+- **Flutter / Dart**
+- **Firebase**
+  - Firestore / Realtime Database (tùy cách triển khai)
+  - Firebase Storage (nếu có lưu asset người dùng)
+  - Firebase Auth (nếu có đăng nhập)
+- **Local Storage**
+  - SharedPreferences / Hive / SQLite (tùy project triển khai)
+- **Notifications**
+  - Local Notification (nhắc uống nước theo lịch)
+- Kiến trúc: MVVM (ViewModel + LiveData / StateFlow).
 
-Persistence: Room (local DB)
+---
 
-Background tasks / scheduling: WorkManager (PeriodicWork) + optional AlarmManager setExactAndAllowWhileIdle cho exact alarms.
+## Requirements
 
-DI: Hilt hoặc Koin
+- Flutter SDK: >= 3.x
+- Dart SDK: theo Flutter version
+- Android Studio hoặc VS code
+- Thiết bị Android/iOS hoặc Emulator/Simulator
+- Firebase Project
 
-Network (nếu sync): Retrofit + Moshi/Gson
+---
 
-UI: Jetpack Compose (hoặc XML nếu bạn chưa biết Compose)
+## Installation & Run
 
-Chart: MPAndroidChart hoặc ComposeCharts
+### 1) Clone repository
+```bash
+git clone https://github.com/MP-1611/LT_TBDD.git
+cd LT_TBDD
 
-Testing: JUnit, Espresso, Robolectric
-
-Build: Gradle (Kotlin DSL)
-
-Minimum SDK: 21+ (tùy yêu cầu) — đề xuất 23+
-
->>>>>>> d8eae2d6add1885dda8bca3debbd11eee8d0f1f9
