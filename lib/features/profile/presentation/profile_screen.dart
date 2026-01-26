@@ -127,15 +127,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.edit, color: Color(0xFF36E27B)),
-              onPressed: () async {
-                final changed = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-                );
-                if (changed == true) {
-                  _loadProfile(); // reload data
-                }
-              },
+            onPressed: () async {
+              final changed = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+              );
+              if (changed == true) {
+                _loadProfile(); // reload data
+              }
+            },
           ),
         ],
       ),
@@ -187,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-         Text(
+        Text(
           "Hydration Hero • Lvl $level",
           style: TextStyle(color: Color(0xFF9EB7A8)),
         ),
@@ -435,10 +435,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await FirebaseAuth.instance.signOut();
         await LocalStorageService.clearAll();
         Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRoutes.login,
-                (_) => false,
-            );
+          context,
+          AppRoutes.login,
+              (_) => false,
+        );
       },
       child: const Text(
         "Log Out",
